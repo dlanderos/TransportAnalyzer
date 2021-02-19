@@ -1,0 +1,110 @@
+; TransportAnalyzer: a simple WFP KMD for analyzing incoming and outgoing TCP packets.
+; Copyright (C) 2021 dxboats
+; 
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+; 
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+; GNU General Public License for more details.
+; 
+; You should have received a copy of the GNU General Public License
+; along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+
+
+; Versioning and driver information
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=TransportAnalyzer
+ClassGuid={bbdb6343-9df8-491e-8f2b-02e009d97bab}
+Provider=%ManufacturerName%
+CatalogFile=Driver.cat
+PnpLockDown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+Driver_Device_CoInstaller_CopyFiles = 11
+
+
+
+; Class setup section
+
+[ClassInstall32]
+Addreg=TransportAnalyzerClassReg
+
+[TransportAnalyzerClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+Driver.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; ensure the number matches with SourceDisksNames
+
+
+
+; Installation section
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%Driver.DeviceDesc%=Driver_Device, Root\TransportAnalyzerDriver
+
+[Driver_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+Driver.sys
+
+
+
+; Service Installation
+
+[Driver_Device.NT.Services]
+AddService = Driver,%SPSVCINST_ASSOCSERVICE%, Driver_Service_Inst
+
+[Driver_Service_Inst]
+DisplayName    = %Driver.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\Driver.sys
+
+
+
+; Coinstaller installation
+
+[Driver_Device.NT.CoInstallers]
+AddReg=Driver_Device_CoInstaller_AddReg
+CopyFiles=Driver_Device_CoInstaller_CopyFiles
+
+[Driver_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[Driver_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[Driver_Device.NT.Wdf]
+KmdfService =  Driver, Driver_wdfsect
+[Driver_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+
+
+; Definitions
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="github.com/dxboats/TransportAnalyzer"
+ClassName="TransportAnalyzer"
+DiskName = "TransportAnalyzer Driver Installation Disk"
+Driver.DeviceDesc = "TransportAnalyzer Device"
+Driver.SVCDESC = "TransportAnalyzer Service"

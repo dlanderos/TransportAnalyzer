@@ -33,9 +33,15 @@
     <ClInclude Include="sublayers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="callouts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sublayers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="callouts.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

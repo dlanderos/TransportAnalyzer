@@ -19,6 +19,7 @@
 
 
 #include "filters.h"
+#pragma warning(disable: 4221)
 
 
 
@@ -160,3 +161,7 @@ NTSTATUS taDeleteFilterOutbound(_In_ HANDLE engineHandle) {
 	TA_DEBUG_ONLY_LOG_ERROR_STATUS("failed to delete outbound filter", status);
 	return status;
 }
+
+
+
+#pragma warning(default: 4221)

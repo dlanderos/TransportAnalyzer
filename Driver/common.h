@@ -23,6 +23,7 @@
 
 
 
+#define NDIS61 1
 #include <guiddef.h>
 #include <initguid.h>
 #include <devguid.h>

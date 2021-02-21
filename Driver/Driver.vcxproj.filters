@@ -39,6 +39,9 @@
     <ClInclude Include="filters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="filter_engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sublayers.c">
@@ -48,6 +51,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="filters.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="filter_engine.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

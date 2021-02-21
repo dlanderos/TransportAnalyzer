@@ -42,6 +42,9 @@
     <ClInclude Include="filter_engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="driver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sublayers.c">
@@ -54,6 +57,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="filter_engine.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="driver.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

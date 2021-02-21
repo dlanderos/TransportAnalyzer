@@ -253,12 +253,14 @@
     <ClInclude Include="callouts.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="debug.h" />
+    <ClInclude Include="driver.h" />
     <ClInclude Include="filters.h" />
     <ClInclude Include="filter_engine.h" />
     <ClInclude Include="sublayers.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="callouts.c" />
+    <ClCompile Include="driver.c" />
     <ClCompile Include="filters.c" />
     <ClCompile Include="filter_engine.c" />
     <ClCompile Include="sublayers.c" />

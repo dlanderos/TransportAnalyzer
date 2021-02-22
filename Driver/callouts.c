@@ -70,7 +70,6 @@ NTSTATUS taCreateCalloutInbound(_In_ HANDLE engineHandle, _In_ PDEVICE_OBJECT pD
  * Unsure if the callout needs to be both unregistered and deleted?
  */
 NTSTATUS taDeleteCalloutInbound(_In_ HANDLE engineHandle, _In_ PDEVICE_OBJECT pDeviceObject) {
-	UNREFERENCED_PARAMETER(engineHandle);
 	UNREFERENCED_PARAMETER(pDeviceObject);
 	NTSTATUS status = STATUS_SUCCESS;
 	status = FwpsCalloutUnregisterById(gCalloutInboundIdentifier);
@@ -165,7 +164,6 @@ NTSTATUS taCreateCalloutOutbound(_In_ HANDLE engineHandle, _In_ PDEVICE_OBJECT p
  * Unsure if the callout needs to be both unregistered and deleted?
  */
 NTSTATUS taDeleteCalloutOutbound(_In_ HANDLE engineHandle, _In_ PDEVICE_OBJECT pDeviceObject) {
-	UNREFERENCED_PARAMETER(engineHandle);
 	UNREFERENCED_PARAMETER(pDeviceObject);
 	NTSTATUS status = STATUS_SUCCESS;
 	status = FwpsCalloutUnregisterById(gCalloutOutboundIdentifier);

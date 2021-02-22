@@ -93,7 +93,115 @@ VOID NTAPI taClassifyInbound(
 	_In_opt_ const void* pClassifyContext,
 	_In_ const FWPS_FILTER* pFilter, _In_ UINT64 flowContext, _Inout_ FWPS_CLASSIFY_OUT* pClassifyOut
 ) {
+	// Unreferenced parameters
+	UNREFERENCED_PARAMETER(pClassifyContext);
+	UNREFERENCED_PARAMETER(pFilter);
+	UNREFERENCED_PARAMETER(flowContext);
 
+	// Track progression of callout processing
+	BOOL							 bufferRetreat			 = FALSE;
+	BOOL							 bufferAllocated		 = FALSE;
+	ULONG							 transportHeaderSize	 = 0;
+	PNET_BUFFER_LIST				 pNetBufferList			 = NULL;
+	PNET_BUFFER						 pNetBuffer				 = NULL;
+	PBYTE							 pAllocatedBuffer		 = NULL;
+
+	// Ensure that the transport header size is specified within the meta values
+	if (!FWPS_IS_METADATA_FIELD_PRESENT(pInMetaValues, FWPS_METADATA_FIELD_TRANSPORT_HEADER_SIZE)) {
+		goto finalize;
+	}
+
+	// Ensure that there is layer data
+	if (!pLayerData) {
+		goto finalize;
+	}
+
+	// Get the local port and address
+	UINT16 localPort = pInFixedValues->incomingValue[FWPS_FIELD_INBOUND_TRANSPORT_V4_IP_LOCAL_PORT].value.uint16;
+	UINT32 localAddress = pInFixedValues->incomingValue[FWPS_FIELD_INBOUND_TRANSPORT_V4_IP_LOCAL_ADDRESS].value.uint32;
+
+	// Get the remote port and address
+	UINT16 remotePort = pInFixedValues->incomingValue[FWPS_FIELD_INBOUND_TRANSPORT_V4_IP_REMOTE_PORT].value.uint16;
+	UINT32 remoteAddress = pInFixedValues->incomingValue[FWPS_FIELD_INBOUND_TRANSPORT_V4_IP_REMOTE_ADDRESS].value.uint32;
+
+	// Get transport header size
+	transportHeaderSize = pInMetaValues->transportHeaderSize;
+
+	// Get the first net buffer
+	pNetBufferList = (PNET_BUFFER_LIST) pLayerData;
+	pNetBuffer = NET_BUFFER_LIST_FIRST_NB(pNetBufferList);
+
+	// Get the length of the packet's data
+	ULONG dataLength = NET_BUFFER_DATA_LENGTH(pNetBuffer);
+
+	// Get the length of the packet (data and TCP header)
+	ULONG packetLength = transportHeaderSize + dataLength;
+
+	// Attempt to retreat the net buffer data start so that the TCP header can be read
+	if (!NT_SUCCESS(NdisRetreatNetBufferDataStart(pNetBuffer, transportHeaderSize, 0, NULL))) {
+		goto finalize;
+	}
+	bufferRetreat = TRUE;
+
+	// Attempt to allocate a buffer for the TCP header
+	pAllocatedBuffer = (PBYTE) ExAllocatePoolZero(NonPagedPoolNx, (size_t) packetLength, TA_CALLOUT_INBOUND_POOL_TAG);
+	if (!pAllocatedBuffer) {
+		goto finalize;
+	}
+	bufferAllocated = TRUE;
+
+	// Attempt to get a contiguous buffer from which the TCP header is actually read from
+	PBYTE pContiguousBuffer = (PBYTE) NdisGetDataBuffer(pNetBuffer, (ULONG) packetLength, pAllocatedBuffer, 1, 0);
+	if (!pContiguousBuffer) {
+		goto finalize;
+	}
+
+	// Get the TCP packet's checksum
+	UINT16 checksum = taTCPGetChecksum(pContiguousBuffer);
+
+	// Indicate the beginning of a packet
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "BEGIN PACKET: %04x\n", checksum);
+
+	// Indicate direction of packet
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL,
+		"Direction: %d.%d.%d.%d:%d -> %d.%d.%d.%d:%d",
+		PRETTY_ADDRESS(remoteAddress), remotePort,
+		PRETTY_ADDRESS(localAddress), localPort
+	);
+
+	// Print the TCP Flags
+	taTCPPrintFlags(pContiguousBuffer);
+
+	// Print data if there is some
+	if (dataLength) {
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "Data:\n");
+
+		// Print each byte of data (in little-endian)
+		for (ULONG index = 0; index < dataLength; index++) {
+			BYTE value = *(transportHeaderSize + pContiguousBuffer + index);
+			CHAR byteString[9];
+			taTCPPrettyByte(value, byteString);
+			DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "(%04d) (0x%02x) %s\n", value, value, byteString);
+		}
+	}
+
+	// Indicate the ending of the packet
+	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "END PACKET: %04x\n", checksum);
+
+finalize:
+	// Ensure the net buffer starts where it should for other filters
+	if (bufferRetreat) {
+		NdisAdvanceNetBufferDataStart(pNetBuffer, transportHeaderSize, 0, NULL);
+	}
+
+	// Ensure that header buffer is freed
+	if (bufferAllocated) {
+		ExFreePoolWithTag((PVOID) pAllocatedBuffer, TA_CALLOUT_INBOUND_POOL_TAG);
+		pAllocatedBuffer = 0;
+	}
+
+	// Default action is to permit
+	pClassifyOut->actionType = FWP_ACTION_PERMIT;
 }
 
 
@@ -105,6 +213,7 @@ NTSTATUS NTAPI taNotifyInbound(_In_ FWPS_CALLOUT_NOTIFY_TYPE notifyType, _In_ co
 	UNREFERENCED_PARAMETER(notifyType);
 	UNREFERENCED_PARAMETER(pFilterKey);
 	UNREFERENCED_PARAMETER(pFilter);
+	return STATUS_SUCCESS;
 }
 
 

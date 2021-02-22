@@ -257,6 +257,7 @@
     <ClInclude Include="filters.h" />
     <ClInclude Include="filter_engine.h" />
     <ClInclude Include="sublayers.h" />
+    <ClInclude Include="tcp_utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="callouts.c" />
@@ -264,6 +265,7 @@
     <ClCompile Include="filters.c" />
     <ClCompile Include="filter_engine.c" />
     <ClCompile Include="sublayers.c" />
+    <ClCompile Include="tcp_utils.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

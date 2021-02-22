@@ -64,3 +64,34 @@ VOID taTCPPrintFlags(_In_ PBYTE header) {
 		_flagStringOrEmpty(header, TCP_FLAG_FIN, "FIN")
 	);
 }
+
+
+
+/*
+ * Get's the checksum of the TCP packet.
+ */
+UINT16 taTCPGetChecksum(_In_ PBYTE header) {
+	BYTE upper = *(header + 16);
+	BYTE lower = *(header + 17);
+	UINT16 value = (((UINT16) upper) << 8) | lower;
+	return value;
+}
+
+
+
+/*
+ * Put's a little-endian byte written in ones and zeroes into the provided string.
+ * That string must be 9 characters long. 8 for the ones and zeroes, and 1 for the
+ * string terminator.
+ */
+VOID taTCPPrettyByte(_In_ BYTE value, _Inout_ PCHAR string) {
+	for (UINT32 index = 0; index < 8; index++) {
+		if ((0x80 >> index) & value) {
+			string[index] = '1';
+		}
+		else {
+			string[index] = '0';
+		}
+	}
+	string[8] = '\0';
+}

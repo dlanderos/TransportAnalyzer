@@ -46,6 +46,17 @@
 
 
 /*
+ * Breaks a 32 bit integer into 4 separate 8 bit ones separated by commas to print an IPv4 address.
+ */
+#define PRETTY_ADDRESS(address) \
+		(address >> 24) & 0xFF, \
+		(address >> 16) & 0xFF, \
+		(address >> 8) & 0xFF, \
+		(address) & 0xFF
+
+
+
+/*
  * Determines if the provided flag is set by checking the TCP header data.
  * The header data is expected to begin at the pointer's address. Offsets are
  * not handled.
@@ -58,6 +69,22 @@ BOOL taTCPFlagSet(_In_ PBYTE header, BYTE flag);
  * Prints all the TCP flags (except for NS) that are set in the TCP header. 
  */
 VOID taTCPPrintFlags(_In_ PBYTE header);
+
+
+
+/*
+ * Get's the checksum of the TCP packet. 
+ */
+UINT16 taTCPGetChecksum(_In_ PBYTE header);
+
+
+
+/*
+ * Put's a little-endian byte written in ones and zeroes into the provided string.
+ * That string must be 9 characters long. 8 for the ones and zeroes, and 1 for the
+ * string terminator.
+ */
+VOID taTCPPrettyByte(_In_ BYTE value, _Inout_ PCHAR string);
 
 
 

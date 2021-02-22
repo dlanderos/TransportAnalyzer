@@ -260,7 +260,8 @@
     <ClInclude Include="tcp_utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="callouts.c" />
+    <ClCompile Include="callout_inbound.c" />
+    <ClCompile Include="callout_outbound.c" />
     <ClCompile Include="driver.c" />
     <ClCompile Include="filters.c" />
     <ClCompile Include="filter_engine.c" />

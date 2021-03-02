@@ -99,12 +99,12 @@ VOID NTAPI taClassifyInbound(
 	UNREFERENCED_PARAMETER(flowContext);
 
 	// Track progression of callout processing
-	BOOL							 bufferRetreat			 = FALSE;
-	BOOL							 bufferAllocated		 = FALSE;
-	ULONG							 transportHeaderSize	 = 0;
-	PNET_BUFFER_LIST				 pNetBufferList			 = NULL;
-	PNET_BUFFER						 pNetBuffer				 = NULL;
-	PBYTE							 pAllocatedBuffer		 = NULL;
+	BOOL bufferRetreat = FALSE;
+	BOOL bufferAllocated = FALSE;
+	ULONG transportHeaderSize = 0;
+	PNET_BUFFER_LIST pNetBufferList = NULL;
+	PNET_BUFFER pNetBuffer = NULL;
+	PBYTE pAllocatedBuffer = NULL;
 
 	// Ensure that the transport header size is specified within the meta values
 	if (!FWPS_IS_METADATA_FIELD_PRESENT(pInMetaValues, FWPS_METADATA_FIELD_TRANSPORT_HEADER_SIZE)) {
@@ -137,20 +137,22 @@ VOID NTAPI taClassifyInbound(
 	// Get the length of the packet (data and TCP header)
 	ULONG packetLength = transportHeaderSize + dataLength;
 
-	// Attempt to retreat the net buffer data start so that the TCP header can be read
+	// Attempt to retreat the net buffer data start so that the TCP header and data can be read
+	// By default, the net buffer starts at the data. In order to read the TCP header, the start must
+	// be "retreated" to the beginning of the TCP header.
 	if (!NT_SUCCESS(NdisRetreatNetBufferDataStart(pNetBuffer, transportHeaderSize, 0, NULL))) {
 		goto finalize;
 	}
 	bufferRetreat = TRUE;
 
-	// Attempt to allocate a buffer for the TCP header
+	// Attempt to allocate a buffer for the TCP header and data
 	pAllocatedBuffer = (PBYTE) ExAllocatePoolZero(NonPagedPoolNx, (size_t) packetLength, TA_CALLOUT_INBOUND_POOL_TAG);
 	if (!pAllocatedBuffer) {
 		goto finalize;
 	}
 	bufferAllocated = TRUE;
 
-	// Attempt to get a contiguous buffer from which the TCP header is actually read from
+	// Attempt to get a contiguous buffer from which the TCP header and data is actually read from
 	PBYTE pContiguousBuffer = (PBYTE) NdisGetDataBuffer(pNetBuffer, (ULONG) packetLength, pAllocatedBuffer, 1, 0);
 	if (!pContiguousBuffer) {
 		goto finalize;
@@ -194,7 +196,7 @@ finalize:
 		NdisAdvanceNetBufferDataStart(pNetBuffer, transportHeaderSize, 0, NULL);
 	}
 
-	// Ensure that header buffer is freed
+	// Ensure that the buffer is freed
 	if (bufferAllocated) {
 		ExFreePoolWithTag((PVOID) pAllocatedBuffer, TA_CALLOUT_INBOUND_POOL_TAG);
 		pAllocatedBuffer = 0;

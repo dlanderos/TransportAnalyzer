@@ -99,12 +99,11 @@ VOID NTAPI taClassifyOutbound(
 	UNREFERENCED_PARAMETER(flowContext);
 
 	// Track progression of callout processing
-	//BOOL							 bufferRetreat = FALSE;
-	BOOL							 bufferAllocated		 = FALSE;
-	ULONG							 transportHeaderSize	 = 0;
-	PNET_BUFFER_LIST				 pNetBufferList			 = NULL;
-	PNET_BUFFER						 pNetBuffer				 = NULL;
-	PBYTE							 pAllocatedBuffer		 = NULL;
+	BOOL bufferAllocated = FALSE;
+	ULONG transportHeaderSize = 0;
+	PNET_BUFFER_LIST pNetBufferList = NULL;
+	PNET_BUFFER pNetBuffer = NULL;
+	PBYTE pAllocatedBuffer = NULL;
 
 	// Ensure that the transport header size is specified within the meta values
 	if (!FWPS_IS_METADATA_FIELD_PRESENT(pInMetaValues, FWPS_METADATA_FIELD_TRANSPORT_HEADER_SIZE)) {
@@ -169,7 +168,7 @@ VOID NTAPI taClassifyOutbound(
 
 	// Print data if there is some
 	if (packetLength != transportHeaderSize) {
-		//DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "Data:\n");
+		DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "Data:\n");
 
 		// Print each byte of data (in little-endian)
 		for (ULONG index = 0; index < packetLength; index++) {
@@ -182,8 +181,6 @@ VOID NTAPI taClassifyOutbound(
 
 	// Indicate the ending of the packet
 	DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "END PACKET: %04x\n", checksum);
-
-	// DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_INFO_LEVEL, "TransportHeaderSize: %d, DataLength: %d, PacketLength: %d", transportHeaderSize, dataLength, packetLength);
 
 finalize:
 	// Ensure that the buffer is freed
